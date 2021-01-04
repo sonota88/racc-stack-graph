@@ -9,6 +9,16 @@ rm_if_exists() {
 
 set -o errexit
 
+if [ $# -lt 2 ]; then
+  cat <<__USAGE
+Two arguments are required.
+  arg1: .y file
+  arg2: input string
+__USAGE
+
+  exit 1
+fi
+
 rm_if_exists debug.log
 rm_if_exists stack.log
 
