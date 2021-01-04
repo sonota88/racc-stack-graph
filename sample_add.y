@@ -17,18 +17,18 @@ require "json"
 ---- inner
 
 def initialize
-  # ↓両方とも必要
+  # parser.rb を使ったときにデバッグ情報を出力する
   @yydebug = true
-  # ↓これがないとターミナルにプリントされる
+  # デバッグ情報の出力先をファイルに変更（デフォルトでは標準エラー出力） …… これは必須ではない
   @racc_debug_out = File.open("debug.log", "wb")
 
   @racc_stack_out = File.open("stack.log", "wb")
 end
 
 # Override Racc::Parser#racc_print_stacks
-def racc_print_stacks(t, v)
-  super(t, v)
-  stack = t.zip(v).map { |t, v| [racc_token2str(t), v] }
+def racc_print_stacks(tstack, vstack)
+  super(tstack, vstack)
+  stack = tstack.zip(vstack).map { |t, v| [racc_token2str(t), v] }
   @racc_stack_out.puts JSON.generate(stack)
 end
 
@@ -37,12 +37,12 @@ def next_token
 end
 
 def parse(src)
-  @tokens = src.split(" ").map { |s|
+  @tokens = src.split(" ").map do |s|
     case s
     when /^\d+$/ then [:INT, s.to_i]
     else              [s, s]
     end
-  }
+  end
   @tokens << [false, false]
 
   do_parse
