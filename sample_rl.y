@@ -18,6 +18,7 @@ rule
   expr:
     INT
   | expr "+" expr { result = val }
+
 end
 
 ---- header
@@ -28,15 +29,15 @@ require "json"
 
 def initialize
   @yydebug = true
-  @racc_debug_out = File.open("trace.log", "wb")
+  @racc_debug_out = File.open("debug.log", "wb")
   @racc_stack_out = File.open("stack.log", "wb")
 end
 
 # Override Racc::Parser#racc_print_stacks
-def racc_print_stacks(t, v)
-  super(t, v)
+def racc_print_stacks(tstack, vstack)
+  super(tstack, vstack)
 
-  stack = t.zip(v).map { |t, v| [racc_token2str(t), v] }
+  stack = tstack.zip(vstack).map { |t, v| [racc_token2str(t), v] }
   @racc_stack_out.puts JSON.generate(stack)
 end
 
@@ -45,12 +46,12 @@ def next_token
 end
 
 def parse(src)
-  @tokens = src.split(" ").map { |s|
+  @tokens = src.split(" ").map do |s|
     case s
     when /^\d+$/ then [:INT, s.to_i]
     else              [s, s]
     end
-  }
+  end
   @tokens << [false, false]
 
   do_parse
